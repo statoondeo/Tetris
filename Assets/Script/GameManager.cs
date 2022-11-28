@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 {
 	[SerializeField] protected GameObject BlockPrefab;
 	[SerializeField] protected RectTransform PlayCanvas;
-	[SerializeField] protected Transform NextTetromino;
+	[SerializeField] protected RectTransform NextTetromino;
 	[SerializeField] protected TextMeshProUGUI ScoreText;
 	[SerializeField] protected TextMeshProUGUI LinesText;
 	[SerializeField] protected TextMeshProUGUI LevelText;
@@ -43,7 +43,7 @@ public class GameManager : MonoBehaviour
 		Game = new Game(1.0f, 0, 0, 0, new BasicSpeedStrategy(), new BasicScoreStrategy(), new BasicLevelStrategy(), new Grid(20, 10), bag);
 		BlockSize = BlockPrefab.GetComponentInChildren<Image>().rectTransform.sizeDelta.x;
 		GridBasePosition = new Vector2(0.5f * BlockSize * (1 - Game.ColumnsCount), 0.5f * BlockSize * (1 - Game.RowsCount));
-		GridNextPosition = NextTetromino.position;
+		GridNextPosition = PlayCanvas.rect.position + 0.5f * NextTetromino.rect.size;
 		AnchoredBlocks = new RectTransform[Game.RowsCount, Game.ColumnsCount];
 	}
 	protected void OnEnable() => UserControls.InGame.Enable();
@@ -107,10 +107,10 @@ public class GameManager : MonoBehaviour
 	{
 		ITetromino next = Game.Next;
 		RectTransform[] nextBlocks = new RectTransform[next.Blocks.Length];
-		Vector2 basePosition = GridNextPosition - 0.5f * BlockSize * (next.Size.x * Vector2.right + next.Size.x * Vector2.up);
+		Vector2 basePosition = GridNextPosition - 0.5f * BlockSize * (next.Size.x * Vector2.right + next.Size.y * Vector2.up);
 		for (int i = 0; i < next.Blocks.Length; i++)
 		{
-			GameObject go = Instantiate(BlockPrefab, Vector3.zero, Quaternion.identity, NextTetromino);
+			GameObject go = Instantiate(BlockPrefab, Vector3.zero, Quaternion.identity, GridContainer);
 			nextBlocks[i] = go.GetComponent<RectTransform>();
 			nextBlocks[i].anchoredPosition = basePosition + BlockSize * new Vector2(next.Blocks[i].x, next.Blocks[i].y);
 			go.transform.Find("Block").GetComponent<Image>().color = TetrominoColors.Get(next.Type).fore;
@@ -123,7 +123,7 @@ public class GameManager : MonoBehaviour
 		CurrentBlocks = NextBlocks ?? CreateNextBlocks();
 		for (int i = 0; i < Game.Current.Blocks.Length; i++)
 		{
-			CurrentBlocks[i].transform.SetParent(GridContainer);
+			//CurrentBlocks[i].transform.SetParent(GridContainer);
 			CurrentBlocks[i].anchoredPosition = GetCanvasPosition(Game.Current.Position + Game.Current.Blocks[i]);
 		}
 		NextBlocks = CreateNextBlocks();
